@@ -1,0 +1,64 @@
+[
+    {
+        "caption": "Tools",
+        "id": "tools",
+        "children":
+        [
+            {
+                "caption": "-"
+            },
+            {
+                "caption": "HandeeFramer",
+                "children":
+                [
+                    {
+                        "caption": "Build Frame",
+                        "command": "build_handee_frame",
+                        "id": "handeeframer_build"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "preferences",
+        "children": [
+            {
+                "id": "package-settings",
+                "children": [
+                    {
+                        "caption": "HandeeFramer",
+                        "children": [
+                            {
+                                "caption": "Settings",
+                                "command": "edit_settings",
+                                "args": {
+                                    "base_file": "${packages}/HandeeFramer/HandeeFramer.sublime-settings",
+                                    "default": "{\n\t$0\n}\n"
+                                }
+                            },
+                            {
+                                "caption": "Key Bindings",
+                                "command": "edit_settings",
+                                "args": {
+                                    "base_file": "${packages}/HandeeFramer/Default ($platform).sublime-keymap",
+                                    "default": "[\n\t$0\n]\n"
+                                }
+                            },
+                            {
+                                "caption": "-"
+                            },
+                            {
+                                "caption": "README",
+                                "command": "open_file",
+                                "args": {
+                                    "file": "${packages}/HandeeFramer/README.md"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]

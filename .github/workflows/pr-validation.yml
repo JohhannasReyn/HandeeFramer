@@ -1,0 +1,269 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  lint:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pylint
+    
+    - name: Lint with flake8
+      run: |
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
+    
+    - name: Lint with pylint
+      run: |
+        pylint handeeframer.py --disable=C0103,C0114,C0115,C0116 --max-line-length=100 || true
+
+  validate-structure:
+    name: Validate Package Structure
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Check required files exist
+      run: |
+        files=(
+          "handeeframer.py"
+          "README.md"
+          "LICENSE"
+          "Default.sublime-commands"
+          "Context.sublime-menu"
+          "Main.sublime-menu"
+          "TreeBuilder.sublime-settings"
+          "Default (Windows).sublime-keymap"
+          "Default (Linux).sublime-keymap"
+          "Default (OSX).sublime-keymap"
+          "messages.json"
+          "messages/install.txt"
+        )
+        
+        for file in "${files[@]}"; do
+          if [ ! -f "$file" ]; then
+            echo "❌ Missing required file: $file"
+            exit 1
+          else
+            echo "✅ Found: $file"
+          fi
+        done
+    
+    - name: Validate JSON files
+      run: |
+        json_files=(
+          "Default.sublime-commands"
+          "Context.sublime-menu"
+          "Main.sublime-menu"
+          "TreeBuilder.sublime-settings"
+          "Default (Windows).sublime-keymap"
+          "Default (Linux).sublime-keymap"
+          "Default (OSX).sublime-keymap"
+          "messages.json"
+          "package.json"
+        )
+        
+        for file in "${json_files[@]}"; do
+          if [ -f "$file" ]; then
+            echo "Validating $file..."
+            python -m json.tool "$file" > /dev/null || exit 1
+            echo "✅ $file is valid JSON"
+          fi
+        done
+
+  syntax-check:
+    name: Python Syntax Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+    
+    - name: Check Python syntax
+      run: |
+        python -m py_compile handeeframer.py
+        echo "✅ Python syntax is valid"
+
+  test-parsing:
+    name: Test Tree Parsing Logic
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+    
+    - name: Create test script
+      run: |
+        cat > test_parser.py << 'EOF'
+        import sys
+        import os
+        
+        # Mock sublime module since we're testing outside Sublime Text
+        class MockSublime:
+            class Region:
+                def __init__(self, a, b):
+                    self.a = a
+                    self.b = b
+                def empty(self):
+                    return self.a == self.b
+        
+        sys.modules['sublime'] = MockSublime()
+        sys.modules['sublime_plugin'] = type('sublime_plugin', (), {
+            'TextCommand': object,
+            'WindowCommand': object
+        })()
+        
+        # Import the parser
+        from handeeframer import TreeParser, TreeNode
+        
+        def test_indented():
+            text = """project
+          src
+            main.py
+          tests
+            test.py"""
+            parser = TreeParser(text)
+            nodes = parser.parse()
+            assert len(nodes) == 1, f"Expected 1 root, got {len(nodes)}"
+            assert nodes[0].name == "project"
+            assert len(nodes[0].children) == 2
+            print("✅ Indented notation test passed")
+        
+        def test_shorthand():
+            text = """project/src/main.py
+        project/tests/test.py"""
+            parser = TreeParser(text)
+            nodes = parser.parse()
+            assert len(nodes) == 1
+            assert nodes[0].name == "project"
+            print("✅ Shorthand notation test passed")
+        
+        def test_mixed():
+            text = """project
+          src/main.py
+          tests
+            test.py"""
+            parser = TreeParser(text)
+            nodes = parser.parse()
+            assert len(nodes) == 1
+            print("✅ Mixed notation test passed")
+        
+        if __name__ == "__main__":
+            test_indented()
+            test_shorthand()
+            test_mixed()
+            print("✅ All parsing tests passed!")
+        EOF
+    
+    - name: Run parsing tests
+      run: python test_parser.py
+
+  check-documentation:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Check README completeness
+      run: |
+        required_sections=(
+          "Installation"
+          "Usage"
+          "Examples"
+          "Commands"
+        )
+        
+        for section in "${required_sections[@]}"; do
+          if ! grep -q "$section" README.md; then
+            echo "❌ README.md missing section: $section"
+            exit 1
+          fi
+        done
+        echo "✅ README.md contains all required sections"
+    
+    - name: Check for broken links (basic)
+      run: |
+        # Check for common broken link patterns
+        if grep -E '\[.*\]\(\s*\)' README.md; then
+          echo "❌ Found empty links in README.md"
+          exit 1
+        fi
+        echo "✅ No obvious broken links found"
+
+  package-validation:
+    name: Package Control Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Validate package.json schema
+      run: |
+        python << 'EOF'
+        import json
+        
+        with open('package.json') as f:
+            pkg = json.load(f)
+        
+        required = ['name', 'description', 'author']
+        for field in required:
+            if field not in pkg:
+                print(f"❌ Missing required field in package.json: {field}")
+                exit(1)
+        
+        print("✅ package.json is valid")
+        EOF
+    
+    - name: Validate messages.json
+      run: |
+        python << 'EOF'
+        import json
+        
+        with open('messages.json') as f:
+            messages = json.load(f)
+        
+        if 'install' not in messages:
+            print("❌ messages.json missing 'install' key")
+            exit(1)
+        
+        print("✅ messages.json is valid")
+        EOF
+
+  all-checks-passed:
+    name: All Checks Passed
+    runs-on: ubuntu-latest
+    needs: [lint, validate-structure, syntax-check, test-parsing, check-documentation, package-validation]
+    
+    steps:
+    - name: Success
+      run: |
+        echo "✅ All validation checks passed!"
+        echo "🎉 Pull request is ready for review"

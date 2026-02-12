@@ -1,0 +1,13 @@
+{
+    // HandeeFramer Plugin Settings
+    
+    // Show detailed output in console
+    "verbose": false,
+    
+    // Default behavior when encountering existing files/folders
+    // Options: "skip", "skip_silent"
+    "collision_behavior": "skip",
+    
+    // Show success message dialog after building tree
+    "show_success_dialog": true
+}

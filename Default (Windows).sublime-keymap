@@ -1,0 +1,6 @@
+[
+    {
+        "keys": ["ctrl+alt+b"],
+        "command": "build_handee_frame"
+    }
+]

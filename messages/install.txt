@@ -1,0 +1,40 @@
+HandeeFramer - Thank you for installing!
+=====================================
+
+HandeeFramer allows you to quickly scaffold file and folder structures
+from simple text representations.
+
+Quick Start:
+-----------
+1. Create or open a file in Sublime Text
+2. Type your file structure using indentation or path notation
+3. Select the text (or use the whole document)
+4. Press Ctrl+Alt+B (Cmd+Alt+B on macOS) or use Command Palette
+
+Example:
+-------
+myproject
+  src
+    main.cpp
+    utils.cpp
+  include
+    utils.h
+  README.md
+
+Commands:
+--------
+• Build Tree: Ctrl+Alt+B (Cmd+Alt+B)
+
+Documentation:
+-------------
+For full documentation, visit:
+Preferences → Package Settings → HandeeFramer → README
+
+Features:
+--------
+✓ Flexible syntax (indented or path-based)
+✓ Non-destructive (never overwrites existing files)
+✓ Smart root directory detection
+✓ Cross-platform support
+
+Need help? Check the README or open an issue on GitHub!

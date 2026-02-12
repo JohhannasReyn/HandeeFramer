@@ -1,0 +1,28 @@
+HandeeFramer v1.0.0
+===================
+
+Initial release of HandeeFramer!
+
+Features:
+--------
+• Build file/folder structures from text representations
+• Support for indented notation (whitespace-based hierarchy)
+• Support for shorthand notation (path separators / and \)
+• Mix both notations in the same document
+• Smart root directory detection
+• Non-destructive operation (never overwrites existing files)
+• Cross-platform keyboard shortcuts
+• Context menu integration
+• Command Palette integration
+
+Commands:
+--------
+• Build-Out File/Folder Tree: Ctrl+Alt+B (Cmd+Alt+B on macOS)
+
+Documentation:
+-------------
+Access the full README via:
+Preferences → Package Settings → HandeeFramer → README
+
+For the latest updates and to report issues:
+https://github.com/JohhannasReyn/HandeeFramer

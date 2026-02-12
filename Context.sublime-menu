@@ -1,0 +1,11 @@
+[
+    {
+        "caption": "-",
+        "id": "handeeframer_separator"
+    },
+    {
+        "caption": "Build HandeeFrame",
+        "command": "build_handee_frame",
+        "id": "handeeframer_build"
+    }
+]
