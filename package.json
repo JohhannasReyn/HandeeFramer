@@ -3,8 +3,8 @@
     "description": "Build file and folder structures from text with code fence content, comments, and flexible syntax support",
     "version": "1.0.0",
     "author": "John",
-    "homepage": "https://github.com/yourusername/sublime-handeeframer",
-    "issues": "https://github.com/yourusername/sublime-handeeframer/issues",
+    "homepage": "https://github.com/JohhannasReyn/sublime-handeeframer",
+    "issues": "https://github.com/JohhannasReyn/sublime-handeeframer/issues",
     "releases": [
         {
             "sublime_text": ">=3000",
