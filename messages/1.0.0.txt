@@ -1,8 +1,6 @@
 HandeeFramer v1.0.0
 ===================
 
-Initial release of HandeeFramer!
-
 Features:
 --------
 • Build file/folder structures from text representations
