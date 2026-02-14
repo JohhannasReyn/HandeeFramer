@@ -6,8 +6,8 @@ Thank you for your interest in contributing to HandeeFramer! This document provi
 
 1. **Fork the Repository**
    ```bash
-   git clone https://github.com/yourusername/sublime-tree-builder.git
-   cd sublime-tree-builder
+   git clone https://github.com/JohhannasReyn/HandeeFramer.git
+   cd HandeeFramer
    ```
 
 2. **Install in Sublime Text**
@@ -15,7 +15,7 @@ Thank you for your interest in contributing to HandeeFramer! This document provi
      - Windows: `%APPDATA%\Sublime Text\Packages\`
      - macOS: `~/Library/Application Support/Sublime Text/Packages/`
      - Linux: `~/.config/sublime-text/Packages/`
-   - Create a symlink or copy the plugin directory to `Packages/TreeBuilder/`
+   - Create a symlink or copy the plugin directory to `Packages/HandeeFramer/`
    - Restart Sublime Text
 
 3. **Enable Development Mode**
@@ -25,8 +25,8 @@ Thank you for your interest in contributing to HandeeFramer! This document provi
 ## Code Structure
 
 ```
-TreeBuilder/
-├── tree_builder.py              # Main plugin code
+HandeeFramer/
+├── handeeframer.py              # Main plugin code
 ├── *.sublime-settings           # Settings files
 ├── *.sublime-commands           # Command definitions
 ├── *.sublime-keymap             # Keyboard shortcuts
@@ -150,7 +150,7 @@ Types:
 
 ## Feature Requests
 
-Have an idea for HandeeFramer? We'd love to hear it!
+Have an idea for HandeeFramer?
 
 1. Check existing issues to avoid duplicates
 2. Open a new issue with:
@@ -205,4 +205,4 @@ By contributing, you agree that your contributions will be licensed under the MI
 
 ---
 
-Thank you for contributing to HandeeFramer! 🌳
+Thank you for contributing to HandeeFramer!

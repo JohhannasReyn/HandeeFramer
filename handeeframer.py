@@ -10,7 +10,7 @@ from datetime import datetime
 # ========================================
 # Set to True to always keep log files (even on success)
 # Set to False to auto-delete logs when no errors occur
-DEBUG_MODE = True
+DEBUG_MODE = False
 # ========================================
 
 
@@ -1027,18 +1027,18 @@ class BuildHandeeFrameCommand(sublime_plugin.TextCommand):
         return self.view.size() > 0
 
 
-# Keep old commands for backward compatibility (they just call the new one)
-class BuildTreeFromSelectionCommand(sublime_plugin.TextCommand):
-    """Legacy command - redirects to unified command."""
-    def run(self, edit):
-        self.view.run_command('build_handee_frame')
-    def is_enabled(self):
-        return self.view.size() > 0
+# # Keep old commands for backward compatibility (they just call the new one)
+# class BuildTreeFromSelectionCommand(sublime_plugin.TextCommand):
+#     """Legacy command - redirects to unified command."""
+#     def run(self, edit):
+#         self.view.run_command('build_handee_frame')
+#     def is_enabled(self):
+#         return self.view.size() > 0
 
 
-class BuildTreeFromDocumentCommand(sublime_plugin.TextCommand):
-    """Legacy command - redirects to unified command."""
-    def run(self, edit):
-        self.view.run_command('build_handee_frame')
-    def is_enabled(self):
-        return self.view.size() > 0
+# class BuildTreeFromDocumentCommand(sublime_plugin.TextCommand):
+#     """Legacy command - redirects to unified command."""
+#     def run(self, edit):
+#         self.view.run_command('build_handee_frame')
+#     def is_enabled(self):
+#         return self.view.size() > 0

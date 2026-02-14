@@ -71,6 +71,11 @@ Builds actual file/folder structures from TreeNode objects.
 
 ### Command Classes
 
+#### BuildTreeCommand
+- Automatically detects if a selection exists
+- If there is text selected, calls the `BuildTreeFromSelectionCommand`
+- Otherwise, call is made to `BuildTreeFromDocumentCommand`
+
 #### BuildTreeFromSelectionCommand
 - Builds structure from selected text
 - Validates selection exists
@@ -84,8 +89,8 @@ Builds actual file/folder structures from TreeNode objects.
 ## File Structure
 
 ```
-TreeBuilder/
-├── tree_builder.py                    # Main plugin code (318 lines)
+HandeeFramer/
+├── handeeframer.py                    # Main plugin code (318 lines)
 ├── README.md                          # User documentation
 ├── INSTALL.md                         # Installation guide
 ├── CONTRIBUTING.md                    # Contribution guidelines
@@ -96,7 +101,7 @@ TreeBuilder/
 ├── Default.sublime-commands           # Command Palette integration
 ├── Context.sublime-menu               # Right-click menu
 ├── Main.sublime-menu                  # Preferences menu
-├── TreeBuilder.sublime-settings       # Plugin settings
+├── HandeeFramer.sublime-settings      # Plugin settings
 │
 ├── Default (Windows).sublime-keymap   # Windows shortcuts
 ├── Default (Linux).sublime-keymap     # Linux shortcuts
@@ -105,11 +110,11 @@ TreeBuilder/
 ├── package.json                       # Package metadata
 ├── messages.json                      # Update messages
 │
-├── test_tree_builder.py               # Unit tests (500+ lines)
+├── test_handeeframer.py               # Unit tests (500+ lines)
 │
 ├── messages/
 │   ├── install.txt                    # Installation message
-│   └── 1.0.0.txt                     # Version 1.0.0 release notes
+│   └── 1.0.0.txt                      # Version 1.0.0 release notes
 │
 └── .github/
     └── workflows/
@@ -258,11 +263,11 @@ game_engine
 ## Related Projects
 
 This plugin is inspired by and similar to:
-- markdown2dir (by the same author)
+- [markdown2dir](https://github.com/JohhannasReyn/Markdown2Dir) (another Sublime plugin of mine)
 - Various CLI tree generation tools
 - Project scaffold generators
 
-## Unique Selling Points
+## Uniqueness
 
 1. **Pure Sublime Text integration** - no external tools needed
 2. **Flexible syntax** - multiple ways to express the same structure
@@ -277,17 +282,17 @@ This plugin is inspired by and similar to:
 **Release Date**: 2026
 **Compatibility**: Sublime Text 3 and 4
 **License**: MIT
-**Author**: John
+**Author**: Johhannas Reyn 
 
 ## Installation Methods
 
 1. **Package Control** (coming soon)
-2. **Manual Installation** (copy files to Packages/TreeBuilder/)
+2. **Manual Installation** (copy files to Packages/HandeeFramer/)
 3. **Git Clone** (for development)
 
 ## Support and Contribution
 
-- **GitHub Repository**: (update with your repo URL)
+- **GitHub Repository**: [HandeeFramer Repo](https://github.com/JohhannasReyn/HandeeFramer)
 - **Issue Tracker**: Report bugs and request features
 - **Contributions Welcome**: See CONTRIBUTING.md
 - **Code of Conduct**: Be respectful and constructive

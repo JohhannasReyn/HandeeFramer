@@ -84,8 +84,7 @@ project/README.md
 
 | Action | Windows/Linux | macOS |
 |--------|---------------|-------|
-| Build from Selection | `Ctrl+Alt+B` | `Cmd+Alt+B` |
-| Build from Document | `Ctrl+Alt+Shift+B` | `Cmd+Alt+Shift+B` |
+| Build Frame | `Ctrl+Alt+B` | `Cmd+Alt+B` |
 
 ---
 
@@ -230,7 +229,7 @@ app/
 ## Access from Sublime Text
 
 1. **Command Palette**: `Ctrl+Shift+P` → Type "HandeeFramer"
-2. **Right-Click Menu**: Select text → Right-click → "Build Tree from Selection"
+2. **Right-Click Menu**: Select text → Right-click → "Build HandeeFrame"
 3. **Keyboard Shortcut**: Select text → Press `Ctrl+Alt+B`
 
 ---

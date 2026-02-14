@@ -9,13 +9,13 @@
    - **macOS**: `~/Library/Application Support/Sublime Text/Packages/`
    - **Linux**: `~/.config/sublime-text/Packages/`
 
-2. **Create the TreeBuilder directory:**
+2. **Create the HandeeFramer directory:**
    ```bash
    cd [Packages directory]
-   mkdir TreeBuilder
+   mkdir HandeeFramer
    ```
 
-3. **Copy all files from this folder into the TreeBuilder directory**
+3. **Copy all files from this folder into the HandeeFramer directory**
 
 4. **Restart Sublime Text**
 
@@ -27,7 +27,7 @@
 
 ```bash
 cd [Sublime Text Packages directory]
-git clone https://github.com/yourusername/sublime-tree-builder.git TreeBuilder
+git clone https://github.com/JohhannasReyn/HandeeFramer.git HandeeFramer
 ```
 
 Then restart Sublime Text.
@@ -52,24 +52,20 @@ Then restart Sublime Text.
 ## Keyboard Shortcuts
 
 ### Windows/Linux
-- `Ctrl+Alt+B` - Build from selection
-- `Ctrl+Alt+Shift+B` - Build from document
+- `Ctrl+Alt+B` - Build HandeeFrame
 
 ### macOS
-- `Cmd+Alt+B` - Build from selection
-- `Cmd+Alt+Shift+B` - Build from document
+- `Cmd+Alt+B` - Build HandeeFrame
 
 ## Command Palette
 
 Access via `Ctrl+Shift+P` (Windows/Linux) or `Cmd+Shift+P` (macOS):
-- "HandeeFramer: Build from Selection"
-- "HandeeFramer: Build from Document"
+- "HandeeFramer: Build Frame"
 
 ## Context Menu
 
 Right-click in any file to access:
-- "Build Tree from Selection" (when text is selected)
-- "Build Tree from Document"
+- "Build HandeeFrame"
 
 ## Syntax Quick Reference
 
@@ -146,7 +142,7 @@ Default settings:
 
 Run the included test suite:
 ```bash
-python test_tree_builder.py
+python test_handeeframer.py
 ```
 
 All tests should pass ✅
@@ -164,7 +160,3 @@ See `CONTRIBUTING.md` for guidelines on contributing to this project.
 ## License
 
 MIT License - See `LICENSE` file
-
----
-
-Enjoy building your project structures with HandeeFramer! 🌳

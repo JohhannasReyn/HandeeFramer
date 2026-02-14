@@ -1,4 +1,4 @@
-HandeeFramer - Thank you for installing!
+            HandeeFramer
 =====================================
 
 HandeeFramer allows you to quickly scaffold file and folder structures
