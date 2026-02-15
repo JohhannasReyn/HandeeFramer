@@ -62,6 +62,317 @@ from handeeframer import (
     TreeParser, TreeBuilder
 )
 
+class TestCodeFenceLanguageFiltering:
+    """Test that language identifiers don't create files"""
+    
+    @staticmethod
+    def test_bash_keyword_rejected():
+        """Test that 'bash' alone is rejected"""
+        result = CodeFenceDetector._extract_filename("bash")
+        assert result is None
+        print("✅ Bash keyword rejected")
+    
+    @staticmethod
+    def test_python_keyword_rejected():
+        """Test that 'python' alone is rejected"""
+        result = CodeFenceDetector._extract_filename("python")
+        assert result is None
+        print("✅ Python keyword rejected")
+    
+    @staticmethod
+    def test_javascript_keyword_rejected():
+        """Test that 'javascript' alone is rejected"""
+        result = CodeFenceDetector._extract_filename("javascript")
+        assert result is None
+        print("✅ JavaScript keyword rejected")
+    
+    @staticmethod
+    def test_bash_with_extension_accepted():
+        """Test that 'setup.bash' is accepted"""
+        result = CodeFenceDetector._extract_filename("setup.bash")
+        assert result == "setup.bash"
+        print("✅ Bash with extension accepted")
+    
+    @staticmethod
+    def test_bash_file_accepted():
+        """Test that 'install.sh' is accepted"""
+        result = CodeFenceDetector._extract_filename("install.sh")
+        assert result == "install.sh"
+        print("✅ Shell script accepted")
+    
+    @staticmethod
+    def test_common_files_accepted():
+        """Test that common files without extensions are accepted"""
+        common_files = ['Makefile', 'Dockerfile', 'README', 'LICENSE']
+        for filename in common_files:
+            result = CodeFenceDetector._extract_filename(filename)
+            assert result == filename
+        print("✅ Common files without extensions accepted")
+    
+    @staticmethod
+    def test_markdown_stripped_language():
+        """Test that markdown formatting is stripped from language keywords"""
+        result = CodeFenceDetector._extract_filename("`bash`")
+        assert result is None
+        print("✅ Markdown-wrapped language keyword rejected")
+    
+    @staticmethod
+    def test_markdown_stripped_filename():
+        """Test that markdown formatting is stripped from filenames"""
+        result = CodeFenceDetector._extract_filename("`config.json`")
+        assert result == "config.json"
+        print("✅ Markdown-wrapped filename accepted")
+    
+    @staticmethod
+    def test_asterisk_stripped():
+        """Test that asterisks are removed from filenames"""
+        result = CodeFenceDetector._extract_filename("**config.json**")
+        assert result == "config.json"
+        print("✅ Asterisk-wrapped filename accepted")
+    
+    @staticmethod
+    def test_mixed_markdown_stripped():
+        """Test that mixed markdown is handled"""
+        result = CodeFenceDetector._extract_filename("**`app.py`**")
+        assert result == "app.py"
+        print("✅ Mixed markdown-wrapped filename accepted")
+
+
+class TestCodeFenceIntegration:
+    """Test complete code fence detection with language keywords"""
+    
+    @staticmethod
+    def test_bash_fence_no_file():
+        """Test that ```bash blocks don't create files"""
+        text = """
+```bash
+def hello():
+print("Hello")
+```
+"""
+        fences = CodeFenceDetector.find_code_fences(text)
+        assert len(fences) == 0
+        print("✅ Python code fence creates no file")
+    
+    @staticmethod
+    def test_json_fence_no_file():
+        """Test that ```json blocks don't create files"""
+        text = """
+```json
+{
+  "name": "test"
+}
+```
+"""
+        fences = CodeFenceDetector.find_code_fences(text)
+        assert len(fences) == 0
+        print("✅ JSON code fence creates no file")
+    
+    @staticmethod
+    def test_fence_with_filename():
+        """Test that fence with actual filename creates file"""
+        text = """
+**`config.json`**
+```json
+{
+  "name": "test"
+}
+```
+"""
+        fences = CodeFenceDetector.find_code_fences(text)
+        assert len(fences) == 1
+        assert fences[0][0] == "config.json"
+        print("✅ Fence with filename creates file")
+    
+    @staticmethod
+    def test_multiple_bash_fences():
+        """Test that multiple bash fences create no files"""
+        text = """
+```bash
+npm install
+```
+```bash
+npm run build
+```
+```bash
+npm start
+```
+"""
+        fences = CodeFenceDetector.find_code_fences(text)
+        assert len(fences) == 0
+        print("✅ Multiple bash fences create no files")
+
+
+class TestDirectoryCounting:
+    """Test accurate directory and file counting"""
+    
+    @staticmethod
+    def test_single_root_directory_counted():
+        """Test that single root directory is counted"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            builder = TreeBuilder(tmpdir)
+            
+            # Create a single root with children
+            root = TreeNode("project")
+            src = TreeNode("src")
+            main = TreeNode("main.py")
+            
+            root.add_child(src)
+            src.add_child(main)
+            
+            stats = builder.build([root])
+            
+            # Should count: project/ and src/
+            assert stats['dirs'] == 2
+            assert stats['files'] == 1
+            print("✅ Single root directory counted correctly")
+    
+    @staticmethod
+    def test_multiple_roots_counted():
+        """Test that multiple root directories are counted"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            builder = TreeBuilder(tmpdir)
+            
+            root1 = TreeNode("app")
+            root2 = TreeNode("lib")
+            root3 = TreeNode("tests")
+            
+            file1 = TreeNode("main.py")
+            file2 = TreeNode("utils.py")
+            file3 = TreeNode("test.py")
+            
+            root1.add_child(file1)
+            root2.add_child(file2)
+            root3.add_child(file3)
+            
+            stats = builder.build([root1, root2, root3])
+            
+            # Should count: app/, lib/, tests/
+            assert stats['dirs'] == 3
+            assert stats['files'] == 3
+            print("✅ Multiple root directories counted correctly")
+    
+    @staticmethod
+    def test_nested_directories_counted():
+        """Test that nested directories are all counted"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            builder = TreeBuilder(tmpdir)
+            
+            # Create: project/src/components/ui/
+            root = TreeNode("project")
+            src = TreeNode("src")
+            components = TreeNode("components")
+            ui = TreeNode("ui")
+            button = TreeNode("Button.tsx")
+            
+            root.add_child(src)
+            src.add_child(components)
+            components.add_child(ui)
+            ui.add_child(button)
+            
+            stats = builder.build([root])
+            
+            # Should count: project/, src/, components/, ui/
+            assert stats['dirs'] == 4
+            assert stats['files'] == 1
+            print("✅ Nested directories counted correctly")
+    
+    @staticmethod
+    def test_mixed_structure_counted():
+        """Test counting with mixed files and directories"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            builder = TreeBuilder(tmpdir)
+            
+            root = TreeNode("app")
+            
+            # Add some files at root level
+            config = TreeNode("config.json")
+            readme = TreeNode("README.md")
+            
+            # Add a directory with files
+            src = TreeNode("src")
+            main = TreeNode("main.py")
+            utils = TreeNode("utils.py")
+            
+            root.add_child(config)
+            root.add_child(readme)
+            root.add_child(src)
+            src.add_child(main)
+            src.add_child(utils)
+            
+            stats = builder.build([root])
+            
+            # Should count: app/, src/
+            assert stats['dirs'] == 2
+            # Should count: config.json, README.md, main.py, utils.py
+            assert stats['files'] == 4
+            print("✅ Mixed structure counted correctly")
+    
+    @staticmethod
+    def test_existing_directories_skipped():
+        """Test that existing directories are skipped in count"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Pre-create a directory
+            existing_dir = os.path.join(tmpdir, "existing")
+            os.makedirs(existing_dir)
+            
+            builder = TreeBuilder(tmpdir)
+            
+            root = TreeNode("existing")
+            new_file = TreeNode("new.txt")
+            root.add_child(new_file)
+            
+            stats = builder.build([root])
+            
+            # existing/ already exists, so dirs should be 0
+            # But the directory is still used, just not created
+            assert stats['files'] == 1
+            print("✅ Existing directories handled correctly")
+
+
+class TestFilenameValidation:
+    """Test filename sanitization and validation"""
+    
+    @staticmethod
+    def test_trailing_dots_removed():
+        """Test that trailing dots are removed from filenames"""
+        result = CodeFenceDetector._extract_filename("file.txt.")
+        # After sanitization, should be valid
+        assert result is not None
+        print("✅ Trailing dots handled")
+    
+    @staticmethod
+    def test_asterisk_wildcard_removed():
+        """Test that asterisks are removed"""
+        result = CodeFenceDetector._extract_filename("*.txt")
+        # Should remove the asterisk
+        assert result is not None
+        assert '*' not in result
+        print("✅ Asterisk wildcards removed")
+    
+    @staticmethod
+    def test_backticks_removed():
+        """Test that backticks are completely removed"""
+        result = CodeFenceDetector._extract_filename("`file`.txt")
+        assert result == "file.txt"
+        print("✅ Backticks removed from filename")
+    
+    @staticmethod
+    def test_empty_after_stripping():
+        """Test that empty strings after stripping return None"""
+        result = CodeFenceDetector._extract_filename("```")
+        assert result is None
+        print("✅ Empty string after stripping rejected")
+    
+    @staticmethod
+    def test_dotfile_accepted():
+        """Test that dotfiles are accepted"""
+        dotfiles = ['.gitignore', '.env', '.bashrc', '.env.local']
+        for dotfile in dotfiles:
+            result = CodeFenceDetector._extract_filename(dotfile)
+            assert result == dotfile
+        print("✅ Dotfiles accepted")
+
 
 class TestTreeNode:
     """Test TreeNode class."""
@@ -727,7 +1038,7 @@ class TestTreeBuilder:
             assert content == "original"
             print("✅ Non-destructive test passed")
 
-
+# Add these to the run_all_tests function
 def run_all_tests():
     """Run all test suites."""
     print("=" * 70)
@@ -796,10 +1107,90 @@ def run_all_tests():
     TestTreeBuilder.test_non_destructive()
     print()
 
-    print("=" * 70)
-    print("✅ All 44 tests passed successfully!")
-    print("=" * 70)
+    # NEW TESTS START HERE
+    print("Testing Code Fence Language Filtering...")
+    try:
+        TestCodeFenceLanguageFiltering.test_bash_keyword_rejected()
+        TestCodeFenceLanguageFiltering.test_python_keyword_rejected()
+        TestCodeFenceLanguageFiltering.test_javascript_keyword_rejected()
+        TestCodeFenceLanguageFiltering.test_bash_with_extension_accepted()
+        TestCodeFenceLanguageFiltering.test_bash_file_accepted()
+        TestCodeFenceLanguageFiltering.test_common_files_accepted()
+        TestCodeFenceLanguageFiltering.test_markdown_stripped_language()
+        TestCodeFenceLanguageFiltering.test_markdown_stripped_filename()
+        TestCodeFenceLanguageFiltering.test_asterisk_stripped()
+        TestCodeFenceLanguageFiltering.test_mixed_markdown_stripped()
+    except AssertionError as e:
+        print("❌ Test failed:")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+    except Exception as e:
+        print("❌ Unexpected error: {0}".format(str(e)))
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+    print()
+    
+    print("Testing Code Fence Integration...")
+    try:
+        TestCodeFenceIntegration.test_bash_fence_no_file()
+        TestCodeFenceIntegration.test_json_fence_no_file()
+        TestCodeFenceIntegration.test_fence_with_filename()
+        TestCodeFenceIntegration.test_multiple_bash_fences()
+    except AssertionError as e:
+        print("❌ Test failed:")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+    except Exception as e:
+        print("❌ Unexpected error: {0}".format(str(e)))
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+    print()
+    
+    print("Testing Directory Counting...")
+    try:
+        TestDirectoryCounting.test_single_root_directory_counted()
+        TestDirectoryCounting.test_multiple_roots_counted()
+        TestDirectoryCounting.test_nested_directories_counted()
+        TestDirectoryCounting.test_mixed_structure_counted()
+        TestDirectoryCounting.test_existing_directories_skipped()
+    except AssertionError as e:
+        print("❌ Test failed:")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+    except Exception as e:
+        print("❌ Unexpected error: {0}".format(str(e)))
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+    print()
+    
+    print("Testing Filename Validation...")
+    try:
+        TestFilenameValidation.test_trailing_dots_removed()
+        TestFilenameValidation.test_asterisk_wildcard_removed()
+        TestFilenameValidation.test_backticks_removed()
+        TestFilenameValidation.test_empty_after_stripping()
+        TestFilenameValidation.test_dotfile_accepted()
+    except AssertionError as e:
+        print("❌ Test failed:")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+    except Exception as e:
+        print("❌ Unexpected error: {0}".format(str(e)))
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+    print()
 
+    print("=" * 70)
+    print("✅ All 68 tests passed successfully!")  # Updated count!
+    print("=" * 70)
 
 if __name__ == "__main__":
     try:

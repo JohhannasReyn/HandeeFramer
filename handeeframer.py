@@ -240,8 +240,9 @@ class CodeFenceDetector:
 
                 # Strategy 2: Check on the fence line (on-fence)
                 if not filename:
-                    fence_content = stripped[3:]  # Remove ```
-                    if fence_content and not fence_content.isalpha():
+                    fence_content = stripped[3:].strip()  # Remove ``` and trim
+                    if fence_content:
+                        # Try to extract - let _extract_filename handle validation
                         potential_name = CodeFenceDetector._extract_filename(fence_content)
                         if potential_name:
                             filename = potential_name
@@ -332,28 +333,42 @@ class CodeFenceDetector:
         Handles markdown formatting like **`filename`** by stripping ** and ``
         Also handles trailing text like **`filename`** (note) by removing it
         """
+        LANGUAGE_KEYWORDS = [
+            'bash', 'sh', 'shell', 'python', 'javascript', 'typescript', 
+            'json', 'yaml', 'yml', 'xml', 'sql', 'css', 'html', 'markdown',
+            'text', 'txt', 'jsx', 'tsx', 'rs', 'go', 'c', 'cpp', 'java', 
+            'ruby', 'php', 'swift', 'kotlin', 'scala', 'r', 'perl', 'lua'
+        ]
+
         text = text.strip()
 
-        # Remove markdown bold+backtick pattern and any trailing text
-        # Pattern: **`filename`** (note) -> filename
-        # Pattern: **`filename`** -> filename
-        # Pattern: `filename` -> filename
+        # Skip if it's just a language identifier (no extension)
+        if text.lower() in LANGUAGE_KEYWORDS and '.' not in text:
+            return None
 
-        # First, find and extract content between backticks if present
-        if '`' in text:
-            # Find the first ` and last ` 
-            first_backtick = text.find('`')
-            last_backtick = text.rfind('`')
-            if first_backtick != -1 and last_backtick != -1 and first_backtick < last_backtick:
-                # Extract content between backticks
-                text = text[first_backtick+1:last_backtick]
+        # Remove markdown formatting: backticks, asterisks, underscores
+        # Strip from edges first
+        text = text.strip('`*_').strip()
 
-        # Remove any remaining asterisks
-        text = text.strip('*').strip()
+        # Remove any remaining backticks or asterisks in the middle
+        for char in ['`', '*', '_']:
+            text = text.replace(char, '')
+
+        # Remove trailing dots (Windows doesn't allow them)
+        text = text.rstrip('.')
+
+        text = text.strip()
+
+        # Empty after cleaning?
+        if not text:
+            return None
 
         # Check for common filenames without extensions
-        common_files = ['Makefile', 'Dockerfile', 'LICENSE', 'README', 'CHANGELOG', 
-                       'CONTRIBUTING', 'AUTHORS', 'INSTALL', 'Gemfile', 'Rakefile']
+        common_files = [
+            'Makefile', 'Dockerfile', 'LICENSE', 'README', 'CHANGELOG', 
+            'CONTRIBUTING', 'AUTHORS', 'INSTALL', 'Gemfile', 'Rakefile',
+            'Procfile', 'Vagrantfile', 'Brewfile', 'Cargo', 'CMakeLists'
+        ]
 
         if text in common_files:
             return text
@@ -365,7 +380,6 @@ class CodeFenceDetector:
                 # Has path or is single word
                 if len(text) < 200:  # Reasonable filename length
                     return text
-
         return None
 
     @staticmethod
