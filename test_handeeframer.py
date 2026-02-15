@@ -1197,12 +1197,12 @@ if __name__ == "__main__":
         run_all_tests()
         sys.exit(0)
     except AssertionError as e:
-        print(f"\n❌ Test failed: {e}")
+        print("\n❌ Test failed: {0}".format(e))
         import traceback
         traceback.print_exc()
         sys.exit(1)
     except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
+        print("\n❌ Unexpected error: {0}".format(e))
         import traceback
         traceback.print_exc()
         sys.exit(1)
