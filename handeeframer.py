@@ -10,9 +10,9 @@ from datetime import datetime
 # ========================================
 # Set to True to always keep log files (even on success)
 # Set to False to auto-delete logs when no errors occur
-DEBUG_MODE = False
+DEBUG_MODE = True
 # ========================================
-
+print("HandeeFramer LOADED:", __file__, "DEBUG_MODE=", DEBUG_MODE)
 
 class BuildLogger:
     """Handles logging for HandeeFramer builds."""
@@ -24,11 +24,18 @@ class BuildLogger:
         self.has_errors = False
         self.start_time = datetime.now()
 
-        # Initialize log
         self._write_header()
 
+    def section(self, title):
+        """Log a section header for readability."""
+        timestamp = datetime.now().strftime('%H:%M:%S.%f')[:-3]
+        self.entries.append("")
+        self.entries.append("[{0}] {1}".format(timestamp, "=" * 60))
+        self.entries.append("[{0}] {1}".format(timestamp, title))
+        self.entries.append("[{0}] {1}".format(timestamp, "=" * 60))
+        self.entries.append("")
+
     def _write_header(self):
-        """Write log file header."""
         self.entries.append("=" * 70)
         self.entries.append("HandeeFramer Build Log")
         self.entries.append("=" * 70)
@@ -39,72 +46,77 @@ class BuildLogger:
         self.entries.append("")
 
     def info(self, message, context=None):
-        """Log an info message."""
         timestamp = datetime.now().strftime('%H:%M:%S.%f')[:-3]
-        self.entries.append("[{0}] INFO: {1}")
-        if context:
-            self.entries.append("  Context: {2}")
-
-    def warning(self, message, context=None):
-        """Log a warning message."""
-        timestamp = datetime.now().strftime('%H:%M:%S.%f')[:-3]
-        self.entries.append("[{0}] WARNING: {1}")
-        if context:
-            self.entries.append("  Context: {2}")
-
-    def error(self, message, exception=None, context=None):
-        """Log an error message."""
-        self.has_errors = True
-        timestamp = datetime.now().strftime('%H:%M:%S.%f')[:-3]
-        self.entries.append("[{0}] ERROR: {1}")
-        if exception:
-            self.entries.append("  Exception: {2}: {3}")
-            import traceback
-            tb = traceback.format_exc()
-            self.entries.append("  Traceback:")
-            for line in tb.split('.format(timestamp, message, type(exception).__name__, str(exception))\n'):
-                if line.strip():
-                    self.entries.append("    {0}".format(line))
+        self.entries.append("[{0}] INFO: {1}".format(timestamp, message))
         if context:
             self.entries.append("  Context: {0}".format(context))
 
-    def section(self, title):
-        """Start a new log section."""
-        self.entries.append("")
-        self.entries.append("-" * 70)
-        self.entries.append("  {0}".format(title))
-        self.entries.append("-" * 70)
+    def warning(self, message, context=None):
+        timestamp = datetime.now().strftime('%H:%M:%S.%f')[:-3]
+        self.entries.append("[{0}] WARNING: {1}".format(timestamp, message))
+        if context:
+            self.entries.append("  Context: {0}".format(context))
 
-    def finalize(self):
-        """Write log to file and clean up if no errors."""
-        # Add footer
+    def error(self, message, exception=None, context=None):
+        self.has_errors = True
+        timestamp = datetime.now().strftime('%H:%M:%S.%f')[:-3]
+        self.entries.append("[{0}] ERROR: {1}".format(timestamp, message))
+
+        if exception:
+            self.entries.append("  Exception: {0}: {1}".format(type(exception).__name__, str(exception)))
+            import traceback
+            tb = traceback.format_exc()
+            if tb and "NoneType: None" not in tb:
+
+                self.entries.append("  Traceback:")
+                for line in tb.splitlines():
+                    if line.strip():
+                        self.entries.append("    {0}".format(line))
+
+        if context:
+            self.entries.append("  Context: {0}".format(context))
+
+    def finalize(self, created_dirs_count=0, created_files_count=0, skipped_count=0):
+        """Write summary and flush log to disk. Returns log_path if kept, else None."""
         end_time = datetime.now()
-        duration = (end_time - self.start_time).total_seconds()
+        elapsed = (end_time - self.start_time).total_seconds()
 
         self.entries.append("")
         self.entries.append("=" * 70)
-        self.entries.append("Completed: {0}".format(end_time.strftime('%Y-%m-%d %H:%M:%S')))
-        self.entries.append("Duration: {0:.2f} seconds".format(duration))
-        self.entries.append("Status: {0}".format('FAILED' if self.has_errors else 'SUCCESS'))
+        self.entries.append("Build Summary")
         self.entries.append("=" * 70)
+        self.entries.append("Ended: {0}".format(end_time.strftime('%Y-%m-%d %H:%M:%S')))
+        self.entries.append("Elapsed: {0:.3f}s".format(elapsed))
+        self.entries.append("Created directories: {0}".format(created_dirs_count))
+        self.entries.append("Created files: {0}".format(created_files_count))
+        self.entries.append("Skipped existing: {0}".format(skipped_count))
+        self.entries.append("Errors: {0}".format("YES" if self.has_errors else "NO"))
+        self.entries.append("=" * 70)
+        self.entries.append("")
 
-        # Write to file
+        # Always write the log; decide after whether to keep it.
         try:
+            os.makedirs(self.root_path, exist_ok=True)
             with open(self.log_path, 'w', encoding='utf-8') as f:
-                f.write('\n'.join(self.entries))
+                f.write("\n".join(self.entries))
+        except Exception:
+            # If we can't write a log, there's nothing else to do here.
+            return None
 
-            # Delete if no errors and not in debug mode
-            if not self.has_errors and not DEBUG_MODE:
-                try:
-                    os.remove(self.log_path)
-                except Exception:
-                    pass  # Ignore cleanup errors
-        except Exception as e:
-            print("HandeeFramer: Failed to write log file: {0}".format(e))
+        # Keep logs if debug mode or there were errors; otherwise delete to stay clean.
+        if DEBUG_MODE or self.has_errors:
+            return self.log_path
+
+        try:
+            os.remove(self.log_path)
+        except Exception:
+            pass
+
+        return None
 
     def get_log_path(self):
-        """Get the path to the log file."""
-        return self.log_path if (self.has_errors or DEBUG_MODE) else None
+        """Return the log path if it exists on disk."""
+        return self.log_path if os.path.exists(self.log_path) else None
 
 
 class TreeNode:
@@ -586,6 +598,8 @@ class TreeParser:
             if not name_part:
                 continue
 
+            # Santitize the name from '`'
+            name_part = name_part.replace('`', '').strip()
             # Check for shorthand notation (preserve slashes for now)
             stripped = name_part.strip()
             has_slashes = '/' in stripped or '\\' in stripped
@@ -749,6 +763,74 @@ class TreeBuilder:
             self.logger.error("Build failed", e, "Root path: {0}".format(self.root_path))
             raise
 
+    def _ensure_dir(self, path):
+        """Ensure directory exists; track any directories created along the way."""
+        path = os.path.normpath(path)
+
+        # Build list of missing dirs from top to bottom
+        missing = []
+        cur = path
+        while cur and not os.path.exists(cur):
+            missing.append(cur)
+            parent = os.path.dirname(cur)
+            if parent == cur:
+                break
+            cur = parent
+
+        # Create from topmost missing to leaf
+        for d in reversed(missing):
+            os.makedirs(d, exist_ok=True)
+            self.created_dirs.add(d)
+            self.logger.info("Created directory (implicit): {0}".format(d))
+
+    def _format_comment(self, file_path, comment):
+        """Format a single-line comment appropriate for the file type."""
+        if comment is None:
+            return ""
+
+        c = str(comment).strip()
+        if not c:
+            return ""
+
+        # Normalize extension
+        _, ext = os.path.splitext(file_path.lower())
+
+        # Hash-style comments
+        hash_exts = {
+            ".py", ".sh", ".bash", ".zsh", ".ps1", ".psm1",
+            ".yml", ".yaml", ".toml", ".ini", ".cfg", ".conf",
+            ".dockerfile",  # rare, but ok
+        }
+
+        # Slash comments
+        slash_exts = {
+            ".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hh",
+            ".js", ".ts", ".jsx", ".tsx",
+            ".java", ".cs", ".go", ".rs", ".swift", ".kt",
+        }
+
+        # HTML-ish comments
+        html_exts = {".html", ".htm", ".xml", ".svg", ".md", ".markdown"}
+
+        # CSS block comments (use /* */)
+        css_exts = {".css", ".scss", ".sass", ".less"}
+
+        # Files with no extension but well-known names
+        base = os.path.basename(file_path)
+        no_ext_hash_names = {"makefile", "dockerfile"}
+
+        if ext in html_exts:
+            return "<!-- {0} -->".format(c)
+        if ext in css_exts:
+            return "/* {0} */".format(c)
+        if ext in slash_exts:
+            return "// {0}".format(c)
+        if ext in hash_exts or base.lower() in no_ext_hash_names or ext == "":
+            return "# {0}".format(c)
+
+        # Fallback
+        return "# {0}".format(c)
+
     def _build_node(self, node, parent_path):
         """Recursively build a node and its children."""
         try:
@@ -764,66 +846,73 @@ class TreeBuilder:
                     self.logger.info("Skipped existing file: {0}".format(full_path))
                 else:
                     try:
-                        os.makedirs(os.path.dirname(full_path), exist_ok=True)
+                        # Ensure parent directory exists and count any newly created dirs
+                        self._ensure_dir(os.path.dirname(full_path))
+
                         # Create file with comment if it exists
                         with open(full_path, 'w', encoding='utf-8') as f:
                             if node.comment:
                                 comment_line = self._format_comment(full_path, node.comment)
                                 f.write(comment_line + '\n')
+
                         self.created_files.add(full_path)
-                        self.logger.info("Created file: {0}".format(full_path), 
-                                       "With comment: {0}".format(node.comment) if node.comment else None)
+                        self.logger.info(
+                            "Created file: {0}".format(full_path),
+                            "With comment: {0}".format(node.comment) if node.comment else None
+                        )
                     except Exception as e:
                         self.logger.error("Failed to create file: {0}".format(full_path), e)
             else:
                 # Create directory
-                if os.path.exists(full_path):
-                    if not os.path.isdir(full_path):
-                        self.skipped.add(full_path)
-                        self.logger.warning("Path exists but is not a directory: {0}".format(full_path))
-                        return
-                else:
-                    try:
-                        os.makedirs(full_path, exist_ok=True)
-                        self.created_dirs.add(full_path)
-                        self.logger.info("Created directory: {0}".format(full_path))
-                    except Exception as e:
-                        self.logger.error("Failed to create directory: {0}".format(full_path), e)
-                        return
+                if os.path.exists(full_path) and not os.path.isdir(full_path):
+                    self.skipped.add(full_path)
+                    self.logger.warning("Path exists but is not a directory: {0}".format(full_path))
+                    return
+
+                try:
+                    # Ensure directory exists and count any newly created dirs
+                    self._ensure_dir(full_path)
+                    self.logger.info("Ensured directory: {0}".format(full_path))
+                except Exception as e:
+                    self.logger.error("Failed to create directory: {0}".format(full_path), e)
+                    return
 
                 # Build children
                 for child in node.children:
                     self._build_node(child, full_path)
 
         except Exception as e:
-            self.logger.error("Error building node: {0}".format(node.name), e, 
-                            "Parent: {0}".format(parent_path))
+            self.logger.error(
+                "Error building node: {0}".format(node.name),
+                e,
+                "Parent: {0}".format(parent_path)
+            )
             raise
 
-    def _format_comment(self, filepath, comment):
-        """Format comment with appropriate syntax based on file extension."""
-        ext = os.path.splitext(filepath)[1].lower()
+        # def _format_comment(self, filepath, comment):
+        #     """Format comment with appropriate syntax based on file extension."""
+        #     ext = os.path.splitext(filepath)[1].lower()
 
-        # Python, Ruby, Shell, YAML, etc.
-        if ext in ['.py', '.rb', '.sh', '.bash', '.yml', '.yaml', '.toml', '.conf']:
-            return "# {0}".format(comment)
+        #     # Python, Ruby, Shell, YAML, etc.
+        #     if ext in ['.py', '.rb', '.sh', '.bash', '.yml', '.yaml', '.toml', '.conf']:
+        #         return "# {0}".format(comment)
 
-        # C-style languages
-        elif ext in ['.c', '.cpp', '.h', '.hpp', '.java', '.js', '.ts', '.jsx', '.tsx', 
-                     '.cs', '.go', '.rs', '.swift', '.kt', '.scala', '.php']:
-            return "// {0}".format(comment)
-        # HTML, XML
-        elif ext in ['.html', '.xml', '.svg']:
-            return "<!-- {0} -->".format(comment)
-        # CSS, SCSS, SASS
-        elif ext in ['.css', '.scss', '.sass', '.less']:
-            return "/* {0} */".format(comment)
-        # SQL
-        elif ext in ['.sql']:
-            return "-- {0}".format(comment)
-        # Default
-        else:
-            return "# {0}".format(comment)
+        #     # C-style languages
+        #     elif ext in ['.c', '.cpp', '.h', '.hpp', '.java', '.js', '.ts', '.jsx', '.tsx', 
+        #                  '.cs', '.go', '.rs', '.swift', '.kt', '.scala', '.php']:
+        #         return "// {0}".format(comment)
+        #     # HTML, XML
+        #     elif ext in ['.html', '.xml', '.svg']:
+        #         return "<!-- {0} -->".format(comment)
+        #     # CSS, SCSS, SASS
+        #     elif ext in ['.css', '.scss', '.sass', '.less']:
+        #         return "/* {0} */".format(comment)
+        #     # SQL
+        #     elif ext in ['.sql']:
+        #         return "-- {0}".format(comment)
+        #     # Default
+        #     else:
+        #         return "# {0}".format(comment)
 
     def _fill_content_from_fences(self, nodes, code_fences):
         """Fill file content from code fences."""

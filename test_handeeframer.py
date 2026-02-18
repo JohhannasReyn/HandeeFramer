@@ -909,40 +909,35 @@ class TestTreeBuilder:
         """Test building files with comments"""
         with tempfile.TemporaryDirectory() as tmpdir:
             builder = TreeBuilder(tmpdir)
-
-            root = TreeNode("src/")
-            main = TreeNode("main.py", "Entry point")
-
-            # DEBUG: Check the node properties
-            print("\n=== DEBUG: Node info ===")
-            print("Node name: {0}".format(main.name))
-            print("Node comment: {0}".format(repr(main.comment)))
-            print("Node is_leaf: {0}".format(main.is_leaf))
-            print("Node children: {0}".format(len(main.children)))
-            print("=== END DEBUG ===\n")
-
+    
+            # Use parser-style names: no trailing slash on dir nodes
+            root = TreeNode("src")
+            main = TreeNode("main.py", comment="Entry point")
             root.add_child(main)
-
+    
             stats = builder.build([root])
-
+    
             main_path = os.path.join(tmpdir, "src", "main.py")
-
-            # DEBUG: Check if file exists and what's in it
-            print("\n=== DEBUG: File info ===")
-            print("File exists: {0}".format(os.path.exists(main_path)))
-            if os.path.exists(main_path):
-                with open(main_path, 'r') as f:
-                    content = f.read()
-                print("File content: {0}".format(repr(content)))
-                print("Content length: {0}".format(len(content)))
-            print("=== END DEBUG ===\n")
-
-            with open(main_path, 'r') as f:
+            assert os.path.exists(main_path), "main.py was not created"
+    
+            with open(main_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-
-            assert "# Entry point" in content
-            assert stats['files'] == 1  # Note: 'files' not 'files_created'
-
+    
+            try:
+                assert "# Entry point" in content
+            except AssertionError:
+                # Dump log to help diagnose
+                print("\n=== DEBUG: BuildLogger entries ===")
+                if hasattr(builder, "logger") and hasattr(builder.logger, "entries"):
+                    for line in builder.logger.entries[-80:]:
+                        print(line)
+                else:
+                    print("(No logger entries available)")
+                print("=== END DEBUG ===\n")
+                raise
+            
+            assert stats['files'] == 1
+    
         print("✅ Build with comments test passed")
 
     @staticmethod
