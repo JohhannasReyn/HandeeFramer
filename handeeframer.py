@@ -1,5 +1,5 @@
-import sublime # type: ignore
-import sublime_plugin # type: ignore
+import sublime  # type: ignore
+import sublime_plugin  # type: ignore
 import os
 import re
 from datetime import datetime
