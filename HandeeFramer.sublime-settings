@@ -1,12 +1,16 @@
 {
-    // HandeeFramer Plugin Settings
-    // Show detailed output in console
+    "HandeeFramer_note": "Plugin Settings",
+    "verbose_note": "Show detailed output in console",
+
     "verbose": false,
     
-    // Default behavior when encountering existing files/folders
-    // Options: "skip", "skip_silent"
+    "collision_note": "How to handle existing files/folders",
+    "collision_behavior_options_are": "skip | skip_silent",
+    
     "collision_behavior": "skip",
     
-    // Show success message dialog after building tree
+    "show_success_dialog_note": "Show success message dialog after building tree",
+    "show_success_dialog_options_are": "true | false",
+    
     "show_success_dialog": true
 }
