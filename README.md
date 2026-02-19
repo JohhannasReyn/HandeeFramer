@@ -2,6 +2,9 @@
 
 A Sublime Text plugin that builds file and folder structures from text representations. Perfect for quickly scaffolding project structures without manually creating each file and folder.
 
+---
+---
+
 ## Features
 
 - **Flexible Syntax**: Support for indented, shorthand (path-based), and box-drawing tree notation
@@ -9,8 +12,11 @@ A Sublime Text plugin that builds file and folder structures from text represent
 - **OS-Compatible**: Filters out invalid characters for cross-platform compatibility
 - **Non-Destructive**: Never overwrites existing files or folders
 - **Smart Root Detection**: Automatically determines the appropriate root directory
-- **Multiple Commands**: Build from selection or entire document
+- **Selection-Scoped Builds**: Build from the full document, or restrict builds to a selected subtree
 - **Cross-Platform**: Works on Windows, Linux, and macOS
+
+---
+---
 
 ## Installation
 
@@ -27,6 +33,9 @@ A Sublime Text plugin that builds file and folder structures from text represent
    - Linux: `~/.config/sublime-text/Packages/`
 2. Clone this repository or copy the plugin files into a "TreeBuilder" folder
 3. Restart Sublime Text
+
+---
+---
 
 ## Usage
 
@@ -81,6 +90,9 @@ Use the visual tree format with emojis and box-drawing characters (like from `tr
     └── test.cpp
 ```
 
+---
+---
+
 **Features:**
 - Automatically removes emojis (📁, 📄, 🚀, etc.)
 - Strips box-drawing characters (│, ├, └, ─)
@@ -111,25 +123,27 @@ backend
 ```
 Creates both folders in the current directory: `C:\projects\frontend\` and `C:\projects\backend\`
 
+---
+---
+
 ## Commands
 
-### Build Tree from Selection
-- **Command Palette**: "HandeeFramer: Build from Selection"
-- **Keyboard**: 
+### Build Tree
+- **Command Palette**: "HandeeFramer: Build Tree"
+- **Keyboard**:
   - Windows/Linux: `Ctrl+Alt+B`
   - macOS: `Cmd+Alt+B`
-- **Context Menu**: Right-click on selected text → "Build Tree from Selection"
+- **Context Menu**:
+  - With a selection: Right-click selected text → "Build Tree"
+  - Without a selection: Right-click anywhere → "Build Tree"
 
-Builds the file structure from the currently selected text.
+Builds the file structure using the current editor content:
 
-### Build Tree from Document
-- **Command Palette**: "HandeeFramer: Build from Document"
-- **Keyboard**: 
-  - Windows/Linux: `Ctrl+Alt+Shift+B`
-  - macOS: `Cmd+Alt+Shift+B`
-- **Context Menu**: Right-click anywhere → "Build Tree from Document"
+- If **text is selected**, HandeeFramer builds from the **selected portion only**.
+- If **no selection** is present, HandeeFramer builds from the **entire document**.
 
-Builds the file structure from the entire document content.
+---
+---
 
 ## Examples
 
@@ -177,25 +191,26 @@ tests/test_product.py
 config.yml
 ```
 
+---
+---
+
 ## Settings
 
 Access settings via: `Preferences` → `Package Settings` → `HandeeFramer` → `Settings`
 
-Available settings:
+### Available settings:
+---
+**Show detailed output in console**:
+ - "verbose": true | false (default),
+---
+**How to handle existing files/folders when encountered**:
+ - "collision_behavior": "skip" (default) | "skip_silent"
+---
+**Show success message dialog after building tree**:
+ - "show_success_dialog": true (default) | false
 
-```json
-{
-    // Show detailed output in console
-    "verbose": false,
-    
-    // Default behavior when encountering existing files/folders
-    // Options: "skip", "skip_silent"
-    "collision_behavior": "skip",
-    
-    // Show success message dialog after building tree
-    "show_success_dialog": true
-}
-```
+---
+---
 
 ## Behavior Notes
 
@@ -203,6 +218,9 @@ Available settings:
 - **Empty Files**: All created files are empty (0 bytes)
 - **Directory Creation**: Parent directories are automatically created as needed
 - **Collision Handling**: If a file/folder already exists, it's skipped without error
+
+---
+---
 
 ## Troubleshooting
 
@@ -218,17 +236,29 @@ The plugin needs a file location to determine where to create the structure. Sav
 - If you have a single top-level folder, it will become the root
 - If you want multiple folders at the same level, ensure they all have the same indentation
 
+---
+---
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+---
+---
 
 ## License
 
 MIT License - See LICENSE file for details
 
+---
+---
+
 ## Author
 
 Created by John - Similar to the markdown2dir project
+
+---
+---
 
 ## Version History
 
