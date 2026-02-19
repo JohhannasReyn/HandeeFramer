@@ -267,3 +267,4 @@ Created by John - Similar to the markdown2dir project
   - Non-destructive file/folder creation
   - Cross-platform keyboard shortcuts
   - Context menu integration
+    
