@@ -9,7 +9,7 @@ A Sublime Text plugin that builds file and folder structures from text represent
 - **OS-Compatible**: Filters out invalid characters for cross-platform compatibility
 - **Non-Destructive**: Never overwrites existing files or folders
 - **Smart Root Detection**: Automatically determines the appropriate root directory
-- **Multiple Commands**: Build from selection or entire document
+- **Selection-Scoped Builds**: Build from the full document, or restrict builds to a selected subtree
 - **Cross-Platform**: Works on Windows, Linux, and macOS
 
 ## Installation
