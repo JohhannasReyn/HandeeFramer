@@ -2,7 +2,7 @@
     "name": "HandeeFramer",
     "description": "Build file and folder structures from text with code fence content, comments, and flexible syntax support",
     "version": "1.0.0",
-    "author": "John",
+    "author": "Johhannas Reyn",
     "homepage": "https://github.com/JohhannasReyn/sublime-handeeframer",
     "issues": "https://github.com/JohhannasReyn/sublime-handeeframer/issues",
     "releases": [

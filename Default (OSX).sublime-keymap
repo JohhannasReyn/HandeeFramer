@@ -1,10 +1,6 @@
 [
-    // To use the suggested Key Bindings for HandeeFramer...
-    // ...just change the '/*' to '//*' at the beginning of line 4, and that's it.
-    /*
     {
         "keys": ["super+alt+b"],
         "command": "build_handee_frame"
     }
-//*/
 ]
